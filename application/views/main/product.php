@@ -25,8 +25,9 @@
         <thead>
           <tr>
             <th>No.</th>
+            <th>SAP Code</th>
             <th>Product Name</th>
-            <th>Product Code</th>
+
             <th>Price</th>
             <th>Quantity</th>
             <th>UoM</th>
@@ -47,8 +48,9 @@
           ?>
               <tr class="text-center">
                 <td><?= $no++ ?></td>
-                <td><b><?php echo $product_name; ?></b></td>
                 <td><?php echo $product_code; ?></td>
+                <td><b><?php echo $product_name; ?></b></td>
+
                 <td>₱<?php echo $product_price; ?></td>
                 <td><?php echo $product_quantity; ?></td>
                 <td><?php echo $product_uom; ?></td>

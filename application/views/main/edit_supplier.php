@@ -7,6 +7,14 @@
     h4 {
         margin-left: 10px;
     }
+
+    .form-group {
+        margin: 15px;
+    }
+
+    .bold-label {
+        margin: 5px;
+    }
 </style>
 
 <div class="container mt-2">

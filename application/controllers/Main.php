@@ -697,7 +697,6 @@ class Main extends CI_Controller
 			$this->form_validation->set_rules('product_code', 'Product Code', 'trim|required|is_unique[product.product_code]');
 			$this->form_validation->set_rules('product_name', 'Product Name', 'trim|required|is_unique[product.product_name]', array('is_unique' => 'The Product Name is already taken.'));
 			$this->form_validation->set_rules('product_brand', 'Product Brand', 'trim|required');
-			$this->form_validation->set_rules('supplier_id', 'Supplier', 'trim|required');
 			$this->form_validation->set_rules('product_category', 'Product Category', 'trim|required');
 			$this->form_validation->set_rules('product_minimum_quantity', 'Product Miminum Quantity', 'trim|required');
 			$this->form_validation->set_rules('product_uom', 'Product UoM', 'trim|required');
@@ -1572,9 +1571,6 @@ class Main extends CI_Controller
 	function add_unit()
 	{
 		if ($_SESSION['UserLoginSession']['role'] != USER_ROLE_ADMIN) {
-			redirect('main/dashboard');
-		}
-		if ($_SESSION['role'] != USER_ROLE_ADMIN) {
 			redirect('main/dashboard');
 		}
 		$this->add_unit_submit();

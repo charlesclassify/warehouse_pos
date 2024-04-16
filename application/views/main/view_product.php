@@ -33,7 +33,7 @@
                     </div>
 
                     <div class="form-group col-md-3 d-inline-block">
-                        <label for="product_code" class="bold-label">Product Code</label>
+                        <label for="product_code" class="bold-label">SAP Code</label>
                         <p><?= $product->product_code; ?></p>
                     </div>
 

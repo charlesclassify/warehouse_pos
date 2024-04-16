@@ -1,3 +1,14 @@
+<style>
+  .form-group {
+    margin: 15px;
+  }
+
+  .bold-label {
+    margin: 5px;
+  }
+</style>
+
+
 <h4>Add Supplier</h4>
 <?php echo form_open_multipart('', array('onsubmit' => 'return confirm(\'Are you sure you want to add this supplier?\')')); ?>
 <div class="card" style="box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;">
