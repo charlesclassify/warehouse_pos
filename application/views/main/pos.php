@@ -119,6 +119,7 @@
                         <table class="table table-bordered" id="product-table">
                             <thead>
                                 <tr class="text-center">
+                                    <th>SAP Code</th>
                                     <th>Product Name</th>
                                     <th>UoM</th>
                                     <th>Price</th>
@@ -128,7 +129,8 @@
                             </thead>
                             <tbody id="product-list-body" class="text-center">
                                 <?php foreach ($result as $product) { ?>
-                                    <tr class="product-row" data-product-name="<?php echo $product->product_name; ?>" data-product-price="<?php echo $product->product_price; ?>" data-product-code="<?php echo $product->product_code; ?>" data-product-barcode="<?php echo $product->product_barcode; ?>">
+                                    <tr class="product-row" data-product-name="<?php echo $product->product_name; ?>" data-product-code="<?php echo $product->product_code; ?>" data-product-price="<?php echo $product->product_price; ?>" data-product-code="<?php echo $product->product_code; ?>" data-product-barcode="<?php echo $product->product_barcode; ?>">
+                                        <td><?php echo $product->product_code; ?></td>
                                         <td><?php echo $product->product_name; ?></td>
                                         <td><?php echo $product->product_uom; ?></td>
                                         <td>₱<?php echo $product->product_price; ?></td>
@@ -223,6 +225,7 @@
                 $('#product-list-body').empty();
                 productsToDisplay.forEach(function(product) {
                     var productRow = '<tr class="product-row" data-product-name="' + product.product_name + '" data-product-price="' + product.product_price + '" data-product-code="' + product.product_code + '" data-product-barcode="' + product.product_barcode + '">';
+                    productRow += '<td>' + product.product_code + '</td>';
                     productRow += '<td style="font-size: 12px; font-weight: bold">' + product.product_name + '</td>';
                     productRow += '<td>' + product.product_uom + '</td>';
                     productRow += '<td>' + '₱' + product.product_price + '</td>';

@@ -1,3 +1,13 @@
+<style>
+	.form-group {
+		margin: 15px;
+	}
+
+	.bold-label {
+		margin: 5px;
+	}
+</style>
+
 <h4>Add User</h4>
 
 
