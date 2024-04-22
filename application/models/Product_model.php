@@ -27,7 +27,6 @@ class Product_model extends CI_Model
 		$product_name = (string) $this->input->post('product_name');
 		$product_brand =  $this->input->post('product_brand');
 		$product_category = (string) $this->input->post('product_category');
-		$supplier_id = (string) $this->input->post('supplier_id');
 		$product_minimum_quantity = (string) $this->input->post('product_minimum_quantity');
 		$product_uom =  $this->input->post('product_uom');
 		$product_barcode =  $this->input->post('product_barcode');
@@ -40,7 +39,6 @@ class Product_model extends CI_Model
 			'product_dateadded' => date('Y-m-d H:i:s'),
 			'product_category' => $product_category,
 			'product_uom' => $product_uom,
-			'supplier_id' => $supplier_id,
 			'product_barcode' => $product_barcode,
 			'product_minimum_quantity' => $product_minimum_quantity,
 			'product_price' => $product_price,
@@ -73,7 +71,6 @@ class Product_model extends CI_Model
 		$product_name = (string) $this->input->post('product_name');
 		$product_brand =  $this->input->post('product_brand');
 		$product_category = (string) $this->input->post('product_category');
-		$supplier_id = (string) $this->input->post('supplier_id');
 		$product_minimum_quantity = (string) $this->input->post('product_minimum_quantity');
 		$product_uom =  $this->input->post('product_uom');
 		$product_barcode =  $this->input->post('product_barcode');
@@ -87,7 +84,6 @@ class Product_model extends CI_Model
 			'product_dateadded' => date('Y-m-d H:i:s'),
 			'product_category' => $product_category,
 			'product_uom' => $product_uom,
-			'supplier_id' => $supplier_id,
 			'product_barcode' => $product_barcode,
 			'product_minimum_quantity' => $product_minimum_quantity,
 			'product_price' => $product_price,

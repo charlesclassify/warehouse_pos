@@ -30,7 +30,7 @@ class Main extends CI_Controller
 			redirect(base_url('main/dashboard'));
 		} else {
 			// Load the login page
-			$this->load->view('main/login');
+			$this->load->view('login');
 		}
 	}
 

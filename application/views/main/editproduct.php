@@ -98,7 +98,7 @@
 
 					<div class="form-group col-md-3 d-inline-block">
 						<label class="bold-label">Price</label>
-						<input type="number" placeholder="Enter Price" min="0" name="product_price" value="<?= set_value('product_price', $product->product_price); ?>" class="form-control" id="product_price" required>
+						<input type="number" placeholder="Enter Price" min="0" step="0.01" name="product_price" value="<?= set_value('product_price', $product->product_price); ?>" class="form-control" id="product_price" required>
 						<?= form_error('product_price'); ?>
 					</div>
 
