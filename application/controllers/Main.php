@@ -85,8 +85,7 @@ class Main extends CI_Controller
 		$this->data['low_stocks'] = $this->product_model->getLowStockProductsCount();
 		$this->data['lowStockProducts'] = $this->product_model->getLowStockProducts();
 		$this->data['out_off_stock'] = $this->product_model->countOutOfStockProducts();
-		$this->data['pending_po'] = $this->purchase_order_model->getPendingPurchaseOrdersCount();
-		$this->data['completed_po'] = $this->purchase_order_model->getReceivedPurchaseOrderCount();
+
 		$this->load->view('main/header');
 		$this->load->view('main/dashboard', $this->data);
 		$this->load->view('main/footer');
