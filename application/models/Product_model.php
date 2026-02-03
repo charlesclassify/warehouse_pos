@@ -160,12 +160,46 @@ class Product_model extends CI_Model
 		return $procat;
 	}
 
-	function get_all_product()
+	function get_all_product($limit = null, $offset = null, $search = null, $order_column = null, $order_dir = 'asc')
 	{
-		$this->db->where('isDelete', 'no'); //MODIFY PAG MA SET NA ANG TAMA NGA TABLE
+		$this->db->where('isDelete', 'no');
+		
+		if ($search) {
+			$this->db->group_start();
+			$this->db->like('product_code', $search);
+			$this->db->or_like('product_name', $search);
+			$this->db->or_like('product_price', $search);
+			$this->db->or_like('product_uom', $search);
+			$this->db->group_end();
+		}
+		
+		if ($order_column) {
+			$this->db->order_by($order_column, $order_dir);
+		}
+		
+		if ($limit !== null && $offset !== null) {
+			$this->db->limit($limit, $offset);
+		}
+		
 		$query = $this->db->get('product');
 		$result = $query->result();
 		return $result;
+	}
+	
+	function count_all_products($search = null)
+	{
+		$this->db->where('isDelete', 'no');
+		
+		if ($search) {
+			$this->db->group_start();
+			$this->db->like('product_code', $search);
+			$this->db->or_like('product_name', $search);
+			$this->db->or_like('product_price', $search);
+			$this->db->or_like('product_uom', $search);
+			$this->db->group_end();
+		}
+		
+		return $this->db->count_all_results('product');
 	}
 
 	/*function Select_one($id)
@@ -295,7 +329,7 @@ class Product_model extends CI_Model
 	{
 		$year = date('Y');
 		$text = "RN" . '-' . $year;
-		$query = "SELECT max(receiving_no) as code_auto from receiving";
+		$query = "SELECT max(receiving_no) as code_auto from receiving_no"; //EDITED FOR BATCH RECEIVING
 		$data = $this->db->query($query)->row_array();
 		if ($data && isset($data["code_auto"])) {
 			$max_code = $data['code_auto'];
@@ -306,7 +340,7 @@ class Product_model extends CI_Model
 		} else {
 			// Log error or return a default value
 			error_log("No existing receiving numbers found.");
-			return $text . '-' . sprintf('%03s', 1);
+			return $text . '-' . sprintf('%03s', 157); //EDITED FOR BATCH RECEIVING
 		}
 	}
 
@@ -355,11 +389,12 @@ class Product_model extends CI_Model
 
 			$data_inventory_ledger = [
 				'product_name' => $product_name,
+				'product_code' => $product_code,
 				'unit' => $product_uom, // Adjust based on your unit information
 				'quantity' => $product_quantity, // Negative quantity for sales
 				'price' => '0',
 				'activity' => 'Inbound', // Adjust based on your activity types
-				'date_posted' => date('Y-m-d'), // Adjust based on your date format
+				'date_posted' => date('Y-m-d H:i:s'), // Adjust based on your date format
 			];
 
 			$this->db->insert('inventory_ledger', $data_inventory_ledger);
@@ -383,5 +418,70 @@ class Product_model extends CI_Model
 		$this->db->from('receiving');
 		$query = $this->db->get()->result();
 		return $query;
+	}
+
+	function insert_batch_receiving(){
+		$details= [
+			'receiving_no' => $this->input->post('receiving_no'),
+			'supplier' => $this->input->post('supplier'),
+			'date_created' => date('Y-m-d H:i:s'),
+			'comments' => $this->input->post('comments'),
+			'username' => $this->input->post('username'),
+		];
+
+		$this->db->insert('receiving_no', $details);
+
+		$last_receiving_id = $this->db->insert_id();
+
+		$product_id = $this->input->post('product_id'); #added line
+		$product_name = $this->input->post('product_name');
+		$inbound_quantity = $this->input->post('inbound_quantity');
+		$product_uom = $this->input->post('product_uom');
+		$product_code = $this->input->post('product_code');
+		$product_category = $this->input->post('product_category');
+		$remarks = $this->input->post('comments');
+		$reference_no = $this->input->post('receiving_no');
+
+		foreach ($product_id as $index => $product_id) { #foreach ($product_name as $index => $product_name) {
+			$arr_id = $product_id; #added line
+			$arr_product = $product_name[$index];
+			$arr_code = $product_code[$index];
+			$arr_quant = $inbound_quantity[$index];
+			$arr_unit = $product_uom[$index];
+			$arr_category = $product_category[$index];
+
+			$data_receiving = [
+				'receiving_no' => $last_receiving_id,
+				'product_code' => $arr_code,
+				'product_name' => $arr_product,
+				'inbound_quantity' => $arr_quant,
+				'product_uom' => $arr_unit,
+				'product_category' => $arr_category,
+			];
+
+			$this->db->insert('receiving' , $data_receiving);
+
+			$this->db->set('product_quantity', 'product_quantity + ' . $arr_quant, false);
+			$this->db->where('product_id', $arr_id); #$this->db->where('product_name', $arr_product);
+			$this->db->update('product');
+
+			$ledger_data = [
+				'reference_no' => $reference_no,
+				'product_name' => $arr_product,
+				'product_code' => $arr_code,
+				'unit' => $arr_unit,
+				'quantity' => $arr_quant,
+				'product_category' => $arr_category,
+				'price' => '0',
+				'activity' => 'Inbound',
+				'date_posted' => date('Y-m-d H:i:s'),
+				'remarks' => $remarks
+			];
+
+			$this->db->insert('inventory_ledger' , $ledger_data);
+		}
+
+		return $last_receiving_id;
+
 	}
 }

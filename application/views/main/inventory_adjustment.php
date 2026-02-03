@@ -19,32 +19,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php $no = 1;
-
-                    foreach ($product as $pro) : ?>
-                        <tr class="text-center">
-                            <td><?php echo $pro->product_code; ?></td>
-                            <td><b><?php echo $pro->product_name; ?></b></td>
-                            <td><?php echo $pro->product_brand; ?></td>
-                            <td><?php echo $pro->product_quantity; ?></td>
-                            <td>₱<?php echo $pro->product_price; ?></td>
-                            <td>
-                                <div class="progress">
-                                    <?php if ($pro->product_quantity <= 20) : ?>
-                                        <div class="progress-bar progress-bar-striped bg-danger" style="width: <?php echo $pro->product_quantity; ?>%"></div>
-                                    <?php elseif ($pro->product_quantity <= $pro->product_minimum_quantity) : ?>
-                                        <div class="progress-bar progress-bar-striped bg-warning" style="width: <?php echo $pro->product_quantity; ?>%"></div>
-                                    <?php else : ?>
-                                        <div class="progress-bar progress-bar-striped" style="width: <?php echo $pro->product_quantity; ?>%"></div>
-                                    <?php endif; ?>
-                                </div>
-
-                            </td>
-                            <td>
-                                <a href="<?php echo site_url('main/add_stock/' . $pro->product_id); ?>"><button type="button" class="btn btn-sm btn-success" id="btn_po">Adjust</button></a>
-                            </td>
-                        </tr>
-                    <?php endforeach ?>
                 </tbody>
             </table>
         </div>
@@ -52,6 +26,32 @@
 </div>
 <script>
     $(document).ready(function() {
+        // Initialize DataTable with server-side processing
+        if ($.fn.DataTable.isDataTable('#user-datatables')) {
+            $('#user-datatables').DataTable().destroy();
+        }
+        
+        $('#user-datatables').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "<?php echo site_url('main/get_inventory_adjustment_ajax'); ?>",
+                "type": "POST"
+            },
+            "columns": [
+                { "data": 0 },
+                { "data": 1 },
+                { "data": 2 },
+                { "data": 3 },
+                { "data": 4 },
+                { "data": 5, "orderable": false },
+                { "data": 6, "orderable": false }
+            ],
+            "order": [[0, 'asc']],
+            "pageLength": 10,
+            "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]]
+        });
+
         <?php if ($this->session->flashdata('success')) { ?>
             toastr.success('<?php echo $this->session->flashdata('success'); ?>');
         <?php } elseif ($this->session->flashdata('error')) { ?>

@@ -15,10 +15,36 @@
       <div class="row align-items-center">
         <div class="col-sm-6">
           <a href="<?php echo site_url('main/add_product'); ?>" class="btn btn-success btn-sm"><i class="fas fa-box"></i> Add Product</a>
+          <a href="<?php echo site_url('main/batch_receiving'); ?>" class="btn btn-success btn-sm"><i class="fas fa-dolly-flatbed"></i> Receive Products</a> <!-- ADDED -->
+          <a href="<?php echo site_url('main/printproduct'); ?>" class="btn btn-success btn-sm "><i class="fas fa-print"></i>
+          Print Inventory Report</a> <!-- Added Nov 6, 2024-->
+          <a href="<?php echo site_url('main/export_products_excel'); ?>" class="btn btn-primary btn-sm"><i class="fas fa-file-excel"></i> Export to Excel</a>
+        </div>
+      </div>
+    </div>
+  <?php elseif (isset($_SESSION['UserLoginSession']['role']) && $_SESSION['UserLoginSession']['role'] == USER_ROLE_INBOUND_USER):  ?>
+    <div class="card-header">
+      <div class="row align-items-center">
+        <div class="col-sm-6">
+          <a href="<?php echo site_url('main/batch_receiving'); ?>" class="btn btn-success btn-sm"><i class="fas fa-dolly-flatbed"></i> Receive Products</a> <!-- ADDED -->
+          <a href="<?php echo site_url('main/printproduct'); ?>" class="btn btn-success btn-sm "><i class="fas fa-print"></i> 
+          Print Inventory Report</a> <!-- Added Nov 6, 2024-->
+          <a href="<?php echo site_url('main/export_products_excel'); ?>" class="btn btn-primary btn-sm"><i class="fas fa-file-excel"></i> Export to Excel</a>
+        </div>
+      </div>
+    </div>
+  <?php elseif (isset($_SESSION['UserLoginSession']['role']) && $_SESSION['UserLoginSession']['role'] == USER_ROLE_OUTBOUND_USER):  ?>
+    <div class="card-header">
+      <div class="row align-items-center">
+        <div class="col-sm-6">
+          <a href="<?php echo site_url('main/printproduct'); ?>" class="btn btn-success btn-sm "><i class="fas fa-print"></i> <!-- Added Nov 6, 2024-->
+          Print Inventory Report</a>
+          <a href="<?php echo site_url('main/export_products_excel'); ?>" class="btn btn-primary btn-sm"><i class="fas fa-file-excel"></i> Export to Excel</a>
         </div>
       </div>
     </div>
   <?php endif; ?>
+
   <div class="card-body">
     <div class="table-responsive">
       <table id="productTable" class="table table-striped table-bordered" style="width:100%">
@@ -35,40 +61,6 @@
           </tr>
         </thead>
         <tbody>
-          <?php $no = 1;
-          if (isset($result) && !empty($result)) {
-            foreach ($result as $key => $row) {
-              $product_id = $row->product_id;
-              $product_name = ucfirst($row->product_name);
-              $product_code = $row->product_code;
-              $product_price = $row->product_price;
-              $product_quantity = $row->product_quantity;
-              $product_uom = $row->product_uom;
-
-          ?>
-              <tr class="text-center">
-                <td><?= $no++ ?></td>
-                <td><?php echo $product_code; ?></td>
-                <td><b><?php echo $product_name; ?></b></td>
-
-                <td>₱<?php echo $product_price; ?></td>
-                <td><?php echo $product_quantity; ?></td>
-                <td><?php echo $product_uom; ?></td>
-                <td>
-                  <?php if (isset($_SESSION['UserLoginSession']['role']) && $_SESSION['UserLoginSession']['role'] == USER_ROLE_ADMIN || $_SESSION['UserLoginSession']['role'] == USER_ROLE_INBOUND_USER) : ?>
-                    <a href="#" class="addReceivedQuantitiesBtn" data-productid="<?php echo $product_id; ?>" style="color:green; padding-left:6px;" title="Click here to add product quantity" data-bs-toggle="modal"><i class="fas fa-plus-circle"></i></a>
-                  <?php endif; ?>
-                  <a href="<?php echo site_url('main/view_product/') . $product_id; ?>" style="color:darkcyan; padding-left:6px;"><i class=" fas fa-eye"></i></a>
-                  <?php if (isset($_SESSION['UserLoginSession']['role']) && $_SESSION['UserLoginSession']['role'] == USER_ROLE_ADMIN) : ?>
-                    <a href="<?php echo site_url('main/edit_product/') . $product_id; ?>" style="color:gold; padding-left:6px;"><i class=" fas fa-edit"></i></a>
-                    <a href="<?php echo site_url('main/delete_product/') . $product_id; ?>" onclick="return confirm('Are you sure you want to delete this product?')" style="color:red; padding-left:6px;"><i class="fas fa-trash"></i></a>
-                  <?php endif; ?>
-                </td>
-              </tr>
-          <?php
-            }
-          }
-          ?>
         </tbody>
       </table>
     </div>
@@ -105,7 +97,26 @@
   }
 
   document.addEventListener("DOMContentLoaded", function() {
-    const productTable = $('#productTable').DataTable();
+    const productTable = $('#productTable').DataTable({
+      "processing": true,
+      "serverSide": true,
+      "ajax": {
+        "url": "<?php echo site_url('main/get_products_ajax'); ?>",
+        "type": "POST"
+      },
+      "columns": [
+        { "data": 0, "orderable": false },
+        { "data": 1 },
+        { "data": 2 },
+        { "data": 3 },
+        { "data": 4 },
+        { "data": 5 },
+        { "data": 6, "orderable": false }
+      ],
+      "order": [[1, 'asc']],
+      "pageLength": 10,
+      "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]]
+    });
 
     // Event listener for delete button
     $('.delete-product-btn').on('click', function() {
@@ -118,11 +129,12 @@
 
     const searchInput = document.getElementById("searchInput");
 
-    searchInput.addEventListener("input", function() {
-      const searchTerm = searchInput.value.trim().toLowerCase();
-
-      productTable.search(searchTerm).draw();
-    });
+    if (searchInput) {
+      searchInput.addEventListener("input", function() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        productTable.search(searchTerm).draw();
+      });
+    }
   });
   $(document).ready(function() {
     <?php if ($this->session->flashdata('success')) { ?>

@@ -38,10 +38,19 @@
         margin-bottom: 5px;
     }
 
+    h2 {
+        font-size: 10px;
+        color: #727070;
+        font-weight: 300;
+        margin-bottom: 0;
+    }
+
     .receipt_header h2 {
         font-size: 10px;
         color: #727070;
         font-weight: 300;
+        margin-bottom: 0;
+
     }
 
     .receipt_body {
@@ -169,55 +178,99 @@
     }
 </style>
 
-
 <div class="container">
     <div class="receipt_header">
         <h1>GENSAN FEEDMILL, INC.</h1>
         <h2>WAREHOUSE</h2>
-        <h3></h3>
+        <h2>Prepared By: 
+            <?php
+                if (!empty($receipt_details['receiving_no_data'])) {
+                    $receipt_no = $receipt_details['receiving_no_data'][0];
+                    echo ucfirst($receipt_no->username);
+                } else {
+                    echo "";
+                }
+            ?> </h2>
         <h2><strong>INBOUND RECEIPT</strong></h2>
-        <h2>Prepared By: <?= ucfirst($this->session->userdata('UserLoginSession')['username']) ?></h2>
-
+        <h3></h3>
     </div>
     <div class="receipt_body">
-        <?php foreach ($receipt_details as $receipt) : ?>
+      
             <table>
                 <thead>
-                    <th>CODE</th>
-                    <th>NAME</th>
+                    <th>SAP CODE</th>
+                    <th>ITEM NAME</th>
                     <th>UOM</th>
                     <th>QTY</th>
 
                 </thead>
-                <tbody id="itemTableBody">
-                    <tr>
-                        <td><?= $receipt->product_code ?></td>
-                        <td><?= $receipt->product_name ?></td>
-                        <td><?= $receipt->product_uom ?></td>
-                        <td>x<?= $receipt->inbound_quantity ?></td>
+                <?php foreach ($receipt_details['receiving_data'] as $receipt) { ?>
+                    <tbody id="itemTableBody">
+                        <tr>
+                            <td><?= $receipt->product_code ?></td>
+                            <td><?= $receipt->product_name ?></td>
+                            <td><?= $receipt->product_uom ?></td>
+                            <td>x<?= $receipt->inbound_quantity ?></td>
 
-                    </tr>
-                </tbody>
+                        </tr>
+                    </tbody>
+                <?php } ?>
             </table>
 
     </div>
-    <h3></h3>
-    <div class="total">
-        <div>Total: ₱0.00</div>
-        <div id="total"></div>
+    <div class="total" style="border-top: 1px dashed #000; text-align:right">
+        Total: 0.00
     </div>
+    
+    
+    <div class="supplier">
+        <?php
+        // Check if receiving_no data exists
+        if (!empty($receipt_details['receiving_no_data'])) {
+            // Assuming there's only one entry in receiving_no_data array, you can directly access it
+            $receipt_no = $receipt_details['receiving_no_data'][0];
+        ?>
+            <h2>Supplier: <?= $receipt_no->supplier ?></h2>
+        <?php } else {
+            // No receiving_no data found
+            echo "<p>No supplier entered.</p>";
+        }
+        ?>
+    </div>
+
     <div class="comment">
-        <div>Comments: <?= $receipt->comments ?></div>
-        <div id="comment"></div>
+        <?php
+        // Check if receiving_no data exists
+        if (!empty($receipt_details['receiving_no_data'])) {
+            // Assuming there's only one entry in receiving_no_data array, you can directly access it
+            $receipt_no = $receipt_details['receiving_no_data'][0];
+        ?>
+            <h2>Comments: <?= $receipt_no->comments ?></h2>
+        <?php } else {
+            // No receiving_no data found
+            echo "<p>No comment entered.</p>";
+        }
+        ?>
     </div>
-    <div class="comment">
-        <div>Supplier:<?= $receipt->supplier ?></div>
-        <div id="supplier"></div>
+
+    <div class="date">
+        <?php
+        // Check if receiving_no data exists
+        if (!empty($receipt_details['receiving_no_data'])) {
+            // Assuming there's only one entry in receiving_no_data array, you can directly access it
+            $receipt_no = $receipt_details['receiving_no_data'][0];
+        ?>
+            <h3 style="text-align: center; border-top: 1px dashed #000;">
+                Reference No.: <?= $receipt_no->receiving_no ?> <br>
+                Date: <?= (new DateTime($receipt_no->date_created))->format('Y-m-d H:i:s') ?>
+            </h3>
+        <?php } else {
+            // No receiving_no data found
+            echo "<p>No receiving_no data found.</p>";
+        }
+        ?>
     </div>
-    <div class="comment">
-        <h3><?= $receipt->receiving_no ?> | <?= $receipt->date ?></h3>
-    </div>
-<?php endforeach; ?>
+
 </div>
 <script>
     // Handle printing

@@ -18,9 +18,9 @@
 
 <div class="panel panel-default text-center">
     <div class="panel-body">
-        <div>
+        <div class="col-6 mx-auto">
             <label>Edit Unit</label></br>
-            <input type="text" name="unit" class="form-control form-control-sm d-inline-block col-5" value="<?php echo set_value('unit', $unit->unit); ?>">
+            <input type="text" name="unit" class="form-control form-control-sm d-inline-block col-6 text-center" value="<?php echo set_value('unit', $unit->unit); ?>">
         </div></br>
         <div>
             <button type="submit" name="submit" class="btn btn-primary btn-sm" class="form-submit"><i class="fas fa-save"></i> Submit</button>

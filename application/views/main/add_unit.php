@@ -14,9 +14,9 @@
 
 <div class="panel panel-default text-center">
     <div class="panel-body">
-        <div>
+        <div class="col-6 mx-auto">
             <label>Unit Name</label></br>
-            <input type="text" placeholder="Product Unit" name="unit" value="<?php echo set_value('unit'); ?>" class="form-control form-control-sm d-inline-block col-5 text-center">
+            <input type="text" id="unit" placeholder="Product Unit" name="unit" value="<?php echo set_value('unit'); ?>" class="form-control form-control-sm d-inline-block col-6 text-center">
             <?php echo form_error('unit'); ?>
         </div></br>
         <div>

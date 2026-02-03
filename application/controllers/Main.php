@@ -146,9 +146,6 @@ class Main extends CI_Controller
 		$this->edit_user_submit();
 		$this->load->model('user_model');
 		$this->data['user'] = $this->user_model->get_users($user_id);
-
-		$this->load->model('branch_model');
-		$this->data['branch'] = $this->branch_model->get_all_branch();
 		$this->load->view('main/header');
 		$this->load->view('main/edituser', $this->data);
 		$this->load->view('main/footer');
@@ -230,6 +227,71 @@ class Main extends CI_Controller
 		$this->load->view('main/supplier', $this->data);
 		$this->load->view('main/footer');
 	}
+
+	function export_suppliers_excel()
+	{
+		$this->load->model('supplier_model');
+		
+		// Get all suppliers
+		$suppliers = $this->supplier_model->get_all_suppliers();
+		
+		// Set headers for Excel download
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="Suppliers_Export_' . date('Y-m-d_H-i-s') . '.xls"');
+		header('Cache-Control: max-age=0');
+		
+		// Start output
+		echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+		echo '<head>';
+		echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
+		echo '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+		echo '<x:Name>Suppliers</x:Name>';
+		echo '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>';
+		echo '</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
+		echo '</head>';
+		echo '<body>';
+		
+		// Create table
+		echo '<table border="1">';
+		echo '<thead>';
+		echo '<tr style="background-color: #4CAF50; color: white; font-weight: bold;">';
+		echo '<th>No.</th>';
+		echo '<th>Vendor Code</th>';
+		echo '<th>Company Name</th>';
+		echo '<th>Contact Number</th>';
+		echo '<th>Email</th>';
+		echo '<th>Street</th>';
+		echo '<th>Barangay</th>';
+		echo '<th>City</th>';
+		echo '<th>Province</th>';
+		echo '<th>Status</th>';
+		echo '</tr>';
+		echo '</thead>';
+		echo '<tbody>';
+		
+		$no = 1;
+		foreach ($suppliers as $supplier) {
+			echo '<tr>';
+			echo '<td>' . $no++ . '</td>';
+			echo '<td>' . htmlspecialchars($supplier->vendor_code) . '</td>';
+			echo '<td>' . htmlspecialchars($supplier->company_name) . '</td>';
+			echo '<td>' . htmlspecialchars($supplier->supplier_contact) . '</td>';
+			echo '<td>' . htmlspecialchars($supplier->supplier_email) . '</td>';
+			echo '<td>' . htmlspecialchars($supplier->supplier_street) . '</td>';
+			echo '<td>' . htmlspecialchars($supplier->supplier_barangay) . '</td>';
+			echo '<td>' . htmlspecialchars($supplier->supplier_city) . '</td>';
+			echo '<td>' . htmlspecialchars($supplier->supplier_province) . '</td>';
+			echo '<td>' . ucfirst($supplier->status_supplier) . '</td>';
+			echo '</tr>';
+		}
+		
+		echo '</tbody>';
+		echo '</table>';
+		echo '</body>';
+		echo '</html>';
+		exit;
+	}
+
 	function add_supplier()
 	{
 		if ($_SESSION['UserLoginSession']['role'] != USER_ROLE_ADMIN) {
@@ -248,7 +310,7 @@ class Main extends CI_Controller
 			redirect('main/dashboard');
 		}
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-			$this->form_validation->set_rules('supplier_name', 'Supplier', 'trim|is_unique[suppliers.supplier_name]');
+			$this->form_validation->set_rules('vendor_code', 'Vendor Code', 'trim|is_unique[suppliers.vendor_code]');
 			$this->form_validation->set_rules('company_name', 'Company', 'trim|is_unique[suppliers.company_name]');
 			$this->form_validation->set_rules('supplier_contact', 'Contact', 'trim|is_unique[suppliers.supplier_contact]');
 			$this->form_validation->set_rules('supplier_street', 'Street', 'trim');
@@ -301,7 +363,7 @@ class Main extends CI_Controller
 			redirect('main/dashboard');
 		}
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-			$this->form_validation->set_rules('supplier_name', 'Supplier Name', 'trim');
+			$this->form_validation->set_rules('vendor_code', 'Vendor Code', 'trim');
 			$this->form_validation->set_rules('company_name', 'Company Name', 'trim');
 			$this->form_validation->set_rules('supplier_contact', 'Supplier Contact', 'trim');
 			$this->form_validation->set_rules('supplier_street', 'Supplier Street', 'trim');
@@ -667,10 +729,127 @@ class Main extends CI_Controller
 	function product()
 	{
 		$this->load->model('product_model');
-		$this->data['result'] = $this->product_model->get_all_product();
+		$this->data = array();
 		$this->load->view('main/header');
 		$this->load->view('main/product', $this->data);
 		$this->load->view('main/footer');
+	}
+
+	function get_products_ajax()
+	{
+		$this->load->model('product_model');
+		
+		$draw = intval($this->input->post('draw'));
+		$start = intval($this->input->post('start'));
+		$length = intval($this->input->post('length'));
+		$search_value = $this->input->post('search')['value'];
+		
+		$order_column_index = $this->input->post('order')[0]['column'];
+		$order_dir = $this->input->post('order')[0]['dir'];
+		
+		$columns = ['product_id', 'product_code', 'product_name', 'product_price', 'product_quantity', 'product_uom'];
+		$order_column = isset($columns[$order_column_index]) ? $columns[$order_column_index] : 'product_id';
+		
+		$total_records = $this->product_model->count_all_products();
+		$filtered_records = $this->product_model->count_all_products($search_value);
+		
+		$products = $this->product_model->get_all_product($length, $start, $search_value, $order_column, $order_dir);
+		
+		$data = [];
+		$no = $start + 1;
+		foreach ($products as $row) {
+			$actions = '<a href="' . site_url('main/view_product/') . $row->product_id . '" style="color:darkcyan; padding-left:6px;"><i class="fas fa-eye"></i></a>';
+			
+			if (isset($_SESSION['UserLoginSession']['role']) && $_SESSION['UserLoginSession']['role'] == USER_ROLE_ADMIN) {
+				$actions .= '<a href="' . site_url('main/edit_product/') . $row->product_id . '" style="color:gold; padding-left:6px;"><i class="fas fa-edit"></i></a>';
+				$actions .= '<a href="' . site_url('main/delete_product/') . $row->product_id . '" onclick="return confirm(\'Are you sure you want to delete this product?\')" style="color:red; padding-left:6px;"><i class="fas fa-trash"></i></a>';
+			}
+			
+			$data[] = [
+				$no++,
+				$row->product_code,
+				'<b>' . ucfirst($row->product_name) . '</b>',
+				'₱' . $row->product_price,
+				$row->product_quantity,
+				$row->product_uom,
+				$actions
+			];
+		}
+		
+		$response = [
+			'draw' => $draw,
+			'recordsTotal' => $total_records,
+			'recordsFiltered' => $filtered_records,
+			'data' => $data
+		];
+		
+		echo json_encode($response);
+	}
+
+	function export_products_excel()
+	{
+		$this->load->model('product_model');
+		
+		// Get all products (no pagination)
+		$products = $this->product_model->get_all_product();
+		
+		// Set headers for Excel download
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="Products_Export_' . date('Y-m-d_H-i-s') . '.xls"');
+		header('Cache-Control: max-age=0');
+		
+		// Start output
+		echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+		echo '<head>';
+		echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
+		echo '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+		echo '<x:Name>Products</x:Name>';
+		echo '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>';
+		echo '</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
+		echo '</head>';
+		echo '<body>';
+		
+		// Create table
+		echo '<table border="1">';
+		echo '<thead>';
+		echo '<tr style="background-color: #4CAF50; color: white; font-weight: bold;">';
+		echo '<th>No.</th>';
+		echo '<th>SAP Code</th>';
+		echo '<th>Product Name</th>';
+		echo '<th>Brand</th>';
+		echo '<th>Category</th>';
+		echo '<th>Price</th>';
+		echo '<th>Quantity</th>';
+		echo '<th>Minimum Quantity</th>';
+		echo '<th>UoM</th>';
+		echo '<th>Barcode</th>';
+		echo '<th>Date Added</th>';
+		echo '</tr>';
+		echo '</thead>';
+		echo '<tbody>';
+		
+		$no = 1;
+		foreach ($products as $product) {
+			echo '<tr>';
+			echo '<td>' . $no++ . '</td>';
+			echo '<td>' . htmlspecialchars($product->product_code) . '</td>';
+			echo '<td>' . htmlspecialchars($product->product_name) . '</td>';
+			echo '<td>' . htmlspecialchars($product->product_brand) . '</td>';
+			echo '<td>' . htmlspecialchars($product->product_category) . '</td>';
+			echo '<td>' . number_format($product->product_price, 2) . '</td>';
+			echo '<td>' . $product->product_quantity . '</td>';
+			echo '<td>' . $product->product_minimum_quantity . '</td>';
+			echo '<td>' . htmlspecialchars($product->product_uom) . '</td>';
+			echo '<td>' . htmlspecialchars($product->product_barcode) . '</td>';
+			echo '<td>' . $product->product_dateadded . '</td>';
+			echo '</tr>';
+		}
+		
+		echo '</tbody>';
+		echo '</table>';
+		echo '</body>';
+		echo '</html>';
+		exit;
 	}
 
 	function add_product()
@@ -695,12 +874,12 @@ class Main extends CI_Controller
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			$this->form_validation->set_rules('product_code', 'Product Code', 'trim|required|is_unique[product.product_code]');
 			$this->form_validation->set_rules('product_name', 'Product Name', 'trim|required|is_unique[product.product_name]', array('is_unique' => 'The Product Name is already taken.'));
-			$this->form_validation->set_rules('product_brand', 'Product Brand', 'trim|required');
-			$this->form_validation->set_rules('product_category', 'Product Category', 'trim|required');
-			$this->form_validation->set_rules('product_minimum_quantity', 'Product Miminum Quantity', 'trim|required');
-			$this->form_validation->set_rules('product_uom', 'Product UoM', 'trim|required');
+			$this->form_validation->set_rules('product_brand', 'Product Brand', 'trim');
+			$this->form_validation->set_rules('product_category', 'Product Category', 'trim');
+			$this->form_validation->set_rules('product_minimum_quantity', 'Product Miminum Quantity', 'trim');
+			$this->form_validation->set_rules('product_uom', 'Product UoM', 'trim');
 			$this->form_validation->set_rules('product_uom_value', 'Product UoM Value', 'trim');
-			$this->form_validation->set_rules('product_barcode', 'Product Barcode', 'trim|required');
+			$this->form_validation->set_rules('product_barcode', 'Product Barcode', 'trim');
 			$this->form_validation->set_rules('product_price', 'Product Price', 'trim|required');
 
 			if ($this->form_validation->run() != FALSE) {
@@ -748,13 +927,13 @@ class Main extends CI_Controller
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			$this->form_validation->set_rules('product_code', 'Product Code', 'trim|required');
 			$this->form_validation->set_rules('product_name', 'Product Name', 'trim|required');
-			$this->form_validation->set_rules('product_brand', 'Product Brand', 'trim|required');
-			$this->form_validation->set_rules('product_category', 'Product Category', 'trim|required');
-			$this->form_validation->set_rules('product_minimum_quantity', 'Product Miminum Quantity', 'trim|required');
-			$this->form_validation->set_rules('product_uom', 'Product UoM', 'trim|required');
-			$this->form_validation->set_rules('product_uom_value', 'Product UoM Value', 'trim');
+			$this->form_validation->set_rules('product_brand', 'Product Brand', 'trim');
+			$this->form_validation->set_rules('product_category', 'Product Category', 'trim');
+			$this->form_validation->set_rules('product_minimum_quantity', 'Product Miminum Quantity', 'trim');
+			$this->form_validation->set_rules('product_uom', 'Product UoM', 'trim');
+		
 			$this->form_validation->set_rules('product_barcode', 'Product Barcode', 'trim|required');
-			$this->form_validation->set_rules('product_price', 'Product Price', 'trim|required');
+			$this->form_validation->set_rules('product_price', 'Product Price', 'trim');
 
 			if ($this->form_validation->run() != FALSE) {
 				// Form validation successful, proceed with insertion
@@ -905,12 +1084,64 @@ class Main extends CI_Controller
 		if ($_SESSION['UserLoginSession']['role'] != USER_ROLE_ADMIN) {
 			redirect('main/dashboard');
 		}
-		$this->load->model('product_model');
-
-		$this->data['product'] = $this->product_model->get_all_product();
+		$this->data = array();
 		$this->load->view('main/header');
 		$this->load->view('main/inventory_adjustment', $this->data);
 		$this->load->view('main/footer');
+	}
+
+	function get_inventory_adjustment_ajax()
+	{
+		$this->load->model('product_model');
+		
+		$draw = intval($this->input->post('draw'));
+		$start = intval($this->input->post('start'));
+		$length = intval($this->input->post('length'));
+		$search_value = $this->input->post('search')['value'];
+		
+		$order_column_index = $this->input->post('order')[0]['column'];
+		$order_dir = $this->input->post('order')[0]['dir'];
+		
+		$columns = ['product_code', 'product_name', 'product_brand', 'product_quantity', 'product_price', 'product_minimum_quantity'];
+		$order_column = isset($columns[$order_column_index]) ? $columns[$order_column_index] : 'product_code';
+		
+		$total_records = $this->product_model->count_all_products();
+		$filtered_records = $this->product_model->count_all_products($search_value);
+		
+		$products = $this->product_model->get_all_product($length, $start, $search_value, $order_column, $order_dir);
+		
+		$data = [];
+		foreach ($products as $row) {
+			// Determine progress bar color based on quantity
+			if ($row->product_quantity <= 20) {
+				$progress_class = 'bg-danger';
+			} elseif ($row->product_quantity <= $row->product_minimum_quantity) {
+				$progress_class = 'bg-warning';
+			} else {
+				$progress_class = '';
+			}
+			
+			$progress_bar = '<div class="progress"><div class="progress-bar progress-bar-striped ' . $progress_class . '" style="width: ' . min($row->product_quantity, 100) . '%"></div></div>';
+			
+			$data[] = [
+				$row->product_code,
+				'<b>' . $row->product_name . '</b>',
+				$row->product_brand,
+				$row->product_quantity,
+				'₱' . $row->product_price,
+				$progress_bar,
+				'<a href="' . site_url('main/add_stock/' . $row->product_id) . '"><button type="button" class="btn btn-sm btn-success">Adjust</button></a>'
+			];
+		}
+		
+		$response = [
+			'draw' => $draw,
+			'recordsTotal' => $total_records,
+			'recordsFiltered' => $filtered_records,
+			'data' => $data
+		];
+		
+		echo json_encode($response);
 	}
 	function printproduct()
 	{
@@ -963,10 +1194,14 @@ class Main extends CI_Controller
 		$this->load->model('inventory_ledger_model');
 
 		if (isset($_POST['search'])) {
-			$date_from = $this->input->post('date_from');
-			$date_to = $this->input->post('date_to');
+			// Convert datetime inputs to date format
+			$date_from = date('Y-m-d', strtotime($this->input->post('date_from')));
+			$date_to = date('Y-m-d', strtotime($this->input->post('date_to')));
+
+			// Pass dates to the model function
 			$this->data['ledger'] = $this->inventory_ledger_model->get_ledger_by_date_range($date_from, $date_to);
 		} else {
+			// If search not submitted, get all ledger entries
 			$this->data['ledger'] = $this->inventory_ledger_model->get_all_ledger();
 		}
 
@@ -1152,20 +1387,135 @@ class Main extends CI_Controller
 
 	function reports()
 	{
-		$this->load->model('purchase_order_model');
-		$this->data['po'] = $this->purchase_order_model->get_all_po();
-		$this->load->model('goods_received_model');
-		$this->data['gr'] = $this->goods_received_model->get_all_gr();
-		$this->data['receiving'] = $this->goods_received_model->get_all_receiving();
-		$this->load->model('inventory_adjustment_model');
-		$this->data['ia'] = $this->inventory_adjustment_model->get_all_adjust();
-		$this->load->model('goods_return_model');
-		$this->data['gr1'] = $this->goods_return_model->get_all_grt1();
-		$this->load->model('sales_model');
-		$this->data['sa'] = $this->sales_model->get_all_sales();
+		$this->data = array();
 		$this->load->view('main/header');
 		$this->load->view('main/reports', $this->data);
 		$this->load->view('main/footer');
+	}
+
+	function get_sales_report_ajax()
+	{
+		$this->load->model('sales_model');
+		
+		$draw = intval($this->input->post('draw'));
+		$start = intval($this->input->post('start'));
+		$length = intval($this->input->post('length'));
+		$search_value = $this->input->post('search')['value'];
+		
+		$order_column_index = $this->input->post('order')[0]['column'];
+		$order_dir = $this->input->post('order')[0]['dir'];
+		
+		$columns = ['reference_no', 'date_created', 'customer_name', 'total_cost'];
+		$order_column = isset($columns[$order_column_index]) ? $columns[$order_column_index] : 'sales_no_id';
+		
+		$total_records = $this->sales_model->count_all_sales();
+		$filtered_records = $this->sales_model->count_all_sales($search_value);
+		
+		$sales = $this->sales_model->get_all_sales($length, $start, $search_value, $order_column, $order_dir);
+		
+		$data = [];
+		foreach ($sales as $row) {
+			$data[] = [
+				$row->reference_no,
+				$row->date_created,
+				ucfirst($row->customer_name),
+				'₱' . $row->total_cost,
+				'<a href="' . site_url('main/print_sales_report/' . $row->sales_no_id) . '" style="color: darkcyan; padding-left:6px;"><i class="fas fa-print"></i></a>'
+			];
+		}
+		
+		$response = [
+			'draw' => $draw,
+			'recordsTotal' => $total_records,
+			'recordsFiltered' => $filtered_records,
+			'data' => $data
+		];
+		
+		echo json_encode($response);
+	}
+
+	function get_receiving_report_ajax()
+	{
+		$this->load->model('goods_received_model');
+		
+		$draw = intval($this->input->post('draw'));
+		$start = intval($this->input->post('start'));
+		$length = intval($this->input->post('length'));
+		$search_value = $this->input->post('search')['value'];
+		
+		$order_column_index = $this->input->post('order')[0]['column'];
+		$order_dir = $this->input->post('order')[0]['dir'];
+		
+		$columns = ['receiving_no', 'supplier', 'comments', 'date_created', 'username'];
+		$order_column = isset($columns[$order_column_index]) ? $columns[$order_column_index] : 'receiving_no_id';
+		
+		$total_records = $this->goods_received_model->count_all_receiving_no();
+		$filtered_records = $this->goods_received_model->count_all_receiving_no($search_value);
+		
+		$receiving = $this->goods_received_model->get_all_receiving_no($length, $start, $search_value, $order_column, $order_dir);
+		
+		$data = [];
+		foreach ($receiving as $row) {
+			$data[] = [
+				$row->receiving_no,
+				$row->supplier,
+				$row->comments,
+				$row->date_created,
+				$row->username,
+				'<a href="' . site_url('main/inbound_receipt/' . $row->receiving_no_id) . '" style="color: darkcyan; padding-left:6px;"><i class="fas fa-print"></i></a>'
+			];
+		}
+		
+		$response = [
+			'draw' => $draw,
+			'recordsTotal' => $total_records,
+			'recordsFiltered' => $filtered_records,
+			'data' => $data
+		];
+		
+		echo json_encode($response);
+	}
+
+	function get_inventory_report_ajax()
+	{
+		$this->load->model('inventory_adjustment_model');
+		
+		$draw = intval($this->input->post('draw'));
+		$start = intval($this->input->post('start'));
+		$length = intval($this->input->post('length'));
+		$search_value = $this->input->post('search')['value'];
+		
+		$order_column_index = $this->input->post('order')[0]['column'];
+		$order_dir = $this->input->post('order')[0]['dir'];
+		
+		$columns = ['inventory_adjustment_id', 'product_name', 'old_quantity', 'new_quantity', 'date_adjusted', 'reason'];
+		$order_column = isset($columns[$order_column_index]) ? $columns[$order_column_index] : 'inventory_adjustment_id';
+		
+		$total_records = $this->inventory_adjustment_model->count_all_adjust();
+		$filtered_records = $this->inventory_adjustment_model->count_all_adjust($search_value);
+		
+		$adjustments = $this->inventory_adjustment_model->get_all_adjust($length, $start, $search_value, $order_column, $order_dir);
+		
+		$data = [];
+		foreach ($adjustments as $row) {
+			$data[] = [
+				$row->inventory_adjustment_id,
+				$row->product_name,
+				$row->old_quantity,
+				$row->new_quantity,
+				$row->date_adjusted,
+				$row->reason
+			];
+		}
+		
+		$response = [
+			'draw' => $draw,
+			'recordsTotal' => $total_records,
+			'recordsFiltered' => $filtered_records,
+			'data' => $data
+		];
+		
+		echo json_encode($response);
 	}
 	function backup()
 	{
@@ -1307,10 +1657,34 @@ class Main extends CI_Controller
 			redirect('main/dashboard');
 		}
 		$this->load->model('product_model');
-		$this->data['result'] = $this->product_model->get_all_product();
+		$this->data = array();
 		$this->load->view('main/header');
 		$this->load->view('main/pos', $this->data);
 		$this->load->view('main/footer');
+	}
+
+	function get_pos_products_ajax()
+	{
+		$this->load->model('product_model');
+		
+		$page = intval($this->input->post('page'));
+		$limit = intval($this->input->post('limit'));
+		$search_value = $this->input->post('search');
+		
+		$offset = ($page - 1) * $limit;
+		
+		$total_records = $this->product_model->count_all_products($search_value);
+		$products = $this->product_model->get_all_product($limit, $offset, $search_value);
+		
+		$response = [
+			'success' => true,
+			'products' => $products,
+			'total' => $total_records,
+			'page' => $page,
+			'totalPages' => ceil($total_records / $limit)
+		];
+		
+		echo json_encode($response);
 	}
 
 	/*function displayrec()
@@ -1681,46 +2055,65 @@ class Main extends CI_Controller
 			$this->form_validation->set_rules('comments', 'Comments', 'trim|required');
 
 			if ($this->form_validation->run() != FALSE) {
-				$config['upload_path'] = './assets/images/'; // Set the upload directory
-				$config['allowed_types'] = 'jpg|jpeg|png|gif'; // Allowed file types
-				$config['max_size'] = 10000; // Maximum file size in kilobytes
-				$config['encrypt_name'] = TRUE; // Encrypt the file name for security
+				// Process the form data
 
-				$this->load->library('upload', $config);
+				// Check if a file is uploaded
+				if (!empty($_FILES['product_image']['name'])) {
+					$config['upload_path'] = './assets/images/'; // Set the upload directory
+					$config['allowed_types'] = 'jpg|jpeg|png|gif'; // Allowed file types
+					$config['max_size'] = 10000; // Maximum file size in kilobytes
+					$config['encrypt_name'] = TRUE; // Encrypt the file name for security
 
-				if ($this->upload->do_upload('product_image')) {
-					$image_data = $this->upload->data();
+					$this->load->library('upload', $config);
 
-					// Generate a unique filename based on the product name
-					$product_name = $this->input->post('product_name');
-					$product_code = $this->input->post('product_code');
-					$unique_filename = strtolower(str_replace(' ', '', $product_name)) . '' . $product_code . '_' . time() . $image_data['file_ext'];
+					if ($this->upload->do_upload('product_image')) {
+						$image_data = $this->upload->data();
 
-					// Rename the uploaded file to the unique filename
-					$new_path = './assets/images/' . $unique_filename;
-					rename($image_data['full_path'], $new_path);
+						// Generate a unique filename based on the product name
+						$product_name = $this->input->post('product_name');
+						$product_code = $this->input->post('product_code');
+						$unique_filename = strtolower(str_replace(' ', '', $product_name)) . '' . $product_code . '_' . time() . $image_data['file_ext'];
 
-					// Now, you can save $unique_filename into your database.
-					// Make sure you have a column in your database table to store the file name.
+						// Rename the uploaded file to the unique filename
+						$new_path = './assets/images/' . $unique_filename;
+						rename($image_data['full_path'], $new_path);
 
+						// Now, you can save $unique_filename into your database.
+						// Make sure you have a column in your database table to store the file name.
+
+						$this->load->model('product_model');
+						$response = $this->product_model->insert_received_quantity($unique_filename); // Pass the unique filename to the model
+
+						if ($response) {
+							$success_message = 'Quantity added successfully.';
+							$this->session->set_flashdata('success', $success_message);
+							// Redirect to inbound_receipt page with receiving_no parameter
+							redirect('main/inbound_receipt/' . $response); #$this->input->post('rn') changed for batch receiving!
+						} else {
+							$error_message = 'Quantity was not added.';
+							$this->session->set_flashdata('error', $error_message);
+						}
+					} else {
+						$error_message = 'Image upload failed: ' . $this->upload->display_errors();
+						$this->session->set_flashdata('error', $error_message);
+						redirect('main/inbound_receipt');
+					}
+				} else {
+					// If no file is uploaded, proceed without uploading an image
 					$this->load->model('product_model');
-					$response = $this->product_model->insert_received_quantity($unique_filename); // Pass the unique filename to the model
+					$response = $this->product_model->insert_received_quantity(null); // Pass null for filename
 
 					if ($response) {
 						$success_message = 'Quantity added successfully.';
 						$this->session->set_flashdata('success', $success_message);
-
 						// Redirect to inbound_receipt page with receiving_no parameter
-						redirect('main/inbound_receipt/' . $this->input->post('rn'));
+						redirect('main/inbound_receipt/' . $response); #$this->input->post('rn') changed for batech receiving!
 					} else {
 						$error_message = 'Quantity was not added.';
 						$this->session->set_flashdata('error', $error_message);
+						redirect('main/inbound_receipt');
 					}
-				} else {
-					$error_message = 'Image upload failed: ' . $this->upload->display_errors();
-					$this->session->set_flashdata('error', $error_message);
 				}
-				redirect('main/inbound_receipt');
 			} else {
 				// Validation failed, handle errors here
 				echo $this->form_validation->error_string(); // This will output the validation error messages
@@ -1744,5 +2137,42 @@ class Main extends CI_Controller
 		$this->load->view('main/header');
 		$this->load->view('main/inbound_receipt', $data);
 		$this->load->view('main/footer');
+	}
+
+	//ADDED
+	function batch_receiving()
+	{
+		$this->batch_receiving_submit();
+		$this->load->model('product_model');
+		$this->data['rn'] = $this->product_model->receiving_no();
+		$this->data['product'] = $this->product_model->get_all_product();
+		$this->load->model('supplier_model');
+		$this->data['suppliers'] = $this->supplier_model->get_all_suppliers();
+		$this->load->view('main/header');
+		$this->load->view('main/batch_receiving', $this->data);
+		$this->load->view('main/footer');
+	}
+	//ADDED
+	function batch_receiving_submit()
+	{
+		if ($this->input->post('btn_batch_receiving')) {
+			// Print the posted data
+			// print_r($this->input->post());
+			// exit;  // Use exit or die to stop further execution after printing
+
+			$this->load->model('product_model');
+			// Call the insert_batch_receiving function to get the receiving_no
+			$receiving_no = $this->product_model->insert_batch_receiving();
+			if ($receiving_no) {
+				$success_message = 'Received Quantity created successfully.';
+				$this->session->set_flashdata('success', $success_message);
+				// Redirect to the inbound_receipt page with the receiving_no as a parameter
+				redirect('main/inbound_receipt/' . $receiving_no);
+			} else {
+				$error_message = 'Received Quantity was not created successfully.';
+				$this->session->set_flashdata('error', $error_message);
+				redirect('main/dashboard');
+			}
+		}
 	}
 }

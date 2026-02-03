@@ -14,17 +14,18 @@
 <div class="card" style="box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;">
   <div class="card-body">
     <div class="row">
+
       <div class="col-md-6">
         <div class="form-group">
-          <label for="supplier_name">Contact Persons Name</label>
-          <input type="text" id="supplier_name" name="supplier_name" placeholder="Supplier Name" class="form-control <?php echo form_error('supplier_name') ? 'is-invalid' : ''; ?>" value="<?php echo set_value('supplier_name'); ?>">
-          <span class="text-danger"><?php echo form_error('supplier_name'); ?></span>
+          <label for="supplier_name">Vendor Code</label>
+          <input type="text" id="vendor_code" name="vendor_code" placeholder="Vendor Code" class="form-control <?php echo form_error('vendor_code') ? 'is-invalid' : ''; ?>" value="<?php echo set_value('vendor_code'); ?>">
+          <span class="text-danger"><?php echo form_error('vendor_code'); ?></span>
         </div>
       </div>
 
       <div class="col-md-6">
         <div class="form-group">
-          <label for="company_name">Company</label>
+          <label for="company_name">Company Name</label>
           <input type="text" id="company_name" name="company_name" placeholder="Company" class="form-control <?php echo form_error('company_name') ? 'is-invalid' : ''; ?>" value="<?php echo set_value('company_name'); ?>">
           <span class="text-danger"><?php echo form_error('company_name'); ?></span>
         </div>

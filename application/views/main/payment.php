@@ -79,9 +79,12 @@
                     <div class="form-group">
                         <label for="customerName">Customer Name:</label>
                         <input type="text" class="form-control" name="customer_name" id="customerName" placeholder="Enter customer name" required>
+                        <br>
+                        <label for="customerName">Remarks:</label>
+                        <input type="text" class="form-control" name="remarks" id="remarks" placeholder="Enter remarks" required>
                     </div>
-                    <input type="hidden" value="<?= $ref_no ?>" name="reference_no" readonly class="form-control form-control-sm">
-                    <input type="hidden" value="<?= date('Y-m-d'); ?>" name="date_created" readonly class="form-control form-control-sm">
+                    <input type="hidden" value="<?= $ref_no ?>" name="reference_no" id="reference_no" readonly class="form-control form-control-sm">
+                    <input type="hidden" value="<?= date('Y-m-d H:i:s'); ?>" name="date_created" readonly class="form-control form-control-sm">
                 </div>
 
                 <!-- Numeric Keypad for Weight Input -->
@@ -98,9 +101,10 @@
                             <table class="table table-bordered text-center" id="table_field">
                                 <thead>
                                     <tr>
-                                        <th style="width: 50%;">Product Name</th>
-                                        <th style="width: 15%;">Quantity</th>
-                                        <th style="width: 20%;">Price</th>
+                                        <th style="width: 25%;">SAP Code</th>
+                                        <th style="width: 45%;">Product Name</th>
+                                        <th style="width: 10%;">Quantity</th>
+                                        <th style="width: 25%;">Price</th>
                                     </tr>
                                 </thead>
                                 <tbody class="row_content" id="row_product">
@@ -135,9 +139,13 @@
         $('form').submit(function() {
             // Get the customer name entered by the user
             var customerName = $('#customerName').val();
+            var remarks = $('#remarks').val();
+            var ref_no = $('#reference_no').val();
 
             // Store the customer name in localStorage
             localStorage.setItem('customerName', customerName);
+            localStorage.setItem('remarks', remarks);
+            localStorage.setItem('ref_no', ref_no);
         });
     });
     $(document).ready(function() {
@@ -162,9 +170,12 @@
                 // Iterate through cart items and display them on the payment page
                 cartItems.forEach(function(item) {
                     var cartItem = $('<tr data-product-name="' + item.productName + '" data-product-price="' + item.productPrice.toFixed(2) + '"></tr>');
+                    cartItem.append('<td><input type="text" name="product_code[]" value="' + item.productCode + '" class="form-control" readonly></td>');
                     cartItem.append('<td><input type="text" name="product[]" value="' + item.productName + '" class="form-control" readonly></td>');
                     cartItem.append('<td><input type="number" name="quantity[]" value="' + item.quantity + '" class="form-control product-quantity" readonly></td>');
                     cartItem.append('<td><input type="text" name="product_price[]" value="' + item.productPrice.toFixed(2) + '" class="form-control" readonly></td>');
+                    cartItem.append('<td><input type="hidden" name="product_uom[]" value="' + item.productUoM + '" class="form-control" readonly></td>');
+
                     // Append the cart item to the cart table
                     $('#table_field tbody').append(cartItem);
                 });

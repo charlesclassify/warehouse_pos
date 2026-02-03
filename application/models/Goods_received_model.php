@@ -289,12 +289,76 @@ class Goods_received_model extends CI_Model
         return $query;
     }
 
-    function get_receipt_details($receiving_no)
+    function get_receipt_details($receiving_no) //Added for batch receiving
+    {
+        // Fetch data from receiving table
+        $this->db->where('receiving_no', $receiving_no);
+        $receiving_data = $this->db->get('receiving')->result();
+
+        // Fetch data from receiving_no table
+        $this->db->where('receiving_no_id', $receiving_no);
+        $receiving_no_data = $this->db->get('receiving_no')->result();
+
+        // Return both sets of data
+        return [
+            'receiving_data' => $receiving_data,
+            'receiving_no_data' => $receiving_no_data
+        ];
+    }
+
+    function get_all_receiving_no($limit = null, $offset = null, $search = null, $order_column = null, $order_dir = 'desc') //Added for batch receiving
     {
         $this->db->select('*');
-        $this->db->from('receiving');
-        $this->db->where('receiving_no', $receiving_no);
+        $this->db->from('receiving_no');
+        
+        if ($search) {
+            $this->db->group_start();
+            $this->db->like('receiving_no', $search);
+            $this->db->or_like('supplier', $search);
+            $this->db->or_like('comments', $search);
+            $this->db->or_like('username', $search);
+            $this->db->or_like('date_created', $search);
+            $this->db->group_end();
+        }
+        
+        if ($order_column) {
+            $this->db->order_by($order_column, $order_dir);
+        } else {
+            $this->db->order_by('receiving_no_id', 'desc');
+        }
+        
+        if ($limit !== null && $offset !== null) {
+            $this->db->limit($limit, $offset);
+        }
+        
         $query = $this->db->get()->result();
         return $query;
     }
+    
+    function count_all_receiving_no($search = null)
+    {
+        $this->db->from('receiving_no');
+        
+        if ($search) {
+            $this->db->group_start();
+            $this->db->like('receiving_no', $search);
+            $this->db->or_like('supplier', $search);
+            $this->db->or_like('comments', $search);
+            $this->db->or_like('username', $search);
+            $this->db->or_like('date_created', $search);
+            $this->db->group_end();
+        }
+        
+        return $this->db->count_all_results();
+    }
+
+    // function get_receipt_details($receiving_no)
+    // {
+    //     $this->db->select('*');
+    //     $this->db->from('receiving');
+    //     $this->db->where('receiving_no', $receiving_no);
+    //     $query = $this->db->get()->result();
+    //     return $query;
+    // }
+
 }

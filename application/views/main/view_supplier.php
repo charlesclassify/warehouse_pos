@@ -18,8 +18,8 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="supplier-name">Supplier Name</label>
-                        <p id="supplier-name"><?= $supplier->supplier_name ?></p>
+                        <label for="supplier-name">Vendor Code</label>
+                        <p id="supplier-name"><?= $supplier->vendor_code ?></p>
                     </div>
                     <div class="form-group">
                         <label for="company-name">Company Name</label>

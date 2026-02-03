@@ -13,10 +13,15 @@ class Inventory_ledger_model extends CI_Model
 
     function get_ledger_by_date_range($date_from, $date_to)
     {
+        // Convert dates to datetime format with time set to midnight
+        $datetime_from = $date_from . ' 00:00:00';
+        $datetime_to = $date_to . ' 23:59:59';
+
         $this->db->select('*');
         $this->db->from('inventory_ledger');
-        $this->db->where('date_posted >=', $date_from);
-        $this->db->where('date_posted <=', $date_to);
+        // Compare dates ignoring time component
+        $this->db->where('date_posted >=', $datetime_from);
+        $this->db->where('date_posted <=', $datetime_to);
         $query = $this->db->get()->result();
         return $query;
     }
