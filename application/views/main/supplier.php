@@ -3,6 +3,7 @@
     <?php if (isset($_SESSION['UserLoginSession']['role']) && $_SESSION['UserLoginSession']['role'] == USER_ROLE_ADMIN) : ?>
         <div class="card-header  ">
             <a href="<?php echo site_url('main/add_supplier'); ?>" class="btn btn-success btn-sm "><i class="fas fa-truck"></i> Add Supplier </a>
+            <a href="<?php echo site_url('main/export_suppliers_excel'); ?>" class="btn btn-primary btn-sm"><i class="fas fa-file-excel"></i> Export to Excel</a>
         </div>
     <?php endif; ?>
     <div class="card-body">
@@ -11,8 +12,8 @@
                 <thead>
                     <tr class="text-center">
                         <th>No.</th>
-                        <th>Supplier Name</th>
-                        <th>Company</th>
+                        <th>Vendor Code</th>
+                        <th>Company Name</th>
                         <th>Contact</th>
                         <th>Email</th>
                         <th>Status</th>
@@ -27,7 +28,7 @@
                         $supplier_id = $row->supplier_id; ?>
                         <tr class="text-center"> <!-- Add the "text-center" class here -->
                             <td><?= $no++ ?></td>
-                            <td><?= $row->supplier_name ?></td>
+                            <td><?= $row->vendor_code ?></td>
                             <td><?= $row->company_name ?></td>
                             <td><?= $row->supplier_contact ?></td>
                             <td><?= $row->supplier_email ?></td>

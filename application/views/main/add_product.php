@@ -46,7 +46,7 @@
                     <div class="form-group col-md-3 d-inline-block">
                         <label class="bold-label">Brand</label>
 
-                        <input type="text" placeholder="Enter Brand" name="product_brand" value="<?= set_value('product_brand'); ?>" class="form-control" required>
+                        <input type="text" placeholder="Enter Brand" name="product_brand" value="<?= set_value('product_brand'); ?>" class="form-control">
                         <?= form_error('product_brand'); ?>
                     </div>
 
@@ -64,7 +64,7 @@
 
                     <div class="form-group col-md-3 d-inline-block">
                         <label class="bold-label">Barcode</label>
-                        <input type="text" placeholder="Enter Barcode" name="product_barcode" value="<?= set_value('product_barcode'); ?>" class="form-control" id="product_barcode" required>
+                        <input type="text" placeholder="Enter Barcode" name="product_barcode" value="<?= set_value('product_barcode'); ?>" class="form-control" id="product_barcode">
                         <?= form_error('product_barcode'); ?>
                     </div>
                     <div class="form-group col-md-3 d-inline-block">
@@ -80,13 +80,13 @@
 
                     <div class="form-group col-md-3 d-inline-block">
                         <label class="bold-label">Minimum Quantity</label>
-                        <input type="number" placeholder="Enter Quantity" min="1" name="product_minimum_quantity" value="<?= set_value('product_minimum_quantity'); ?>" class="form-control" id="product_minimum_quantity" required>
+                        <input type="number" placeholder="Enter Quantity" min="1" name="product_minimum_quantity" value="<?= set_value('product_minimum_quantity'); ?>" class="form-control" id="product_minimum_quantity">
                         <?= form_error('product_minimum_quantity'); ?>
                     </div>
 
                     <div class="form-group col-md-3 d-inline-block">
                         <label class="bold-label">Price</label>
-                        <input type="number" placeholder="Enter Price" min="1" step="0.01" name="product_price" value="<?= set_value('product_price'); ?>" class="form-control" id="product_price" required>
+                        <input type="number" placeholder="Enter Price" min="0" step="0.01" name="product_price" value="<?= set_value('product_price'); ?>" class="form-control" id="product_price">
                         <?= form_error('product_price'); ?>
                     </div>
 

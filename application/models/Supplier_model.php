@@ -15,7 +15,7 @@ class Supplier_model extends CI_Model
 
   public function insertsupplier()
   {
-    $supplier_name = (string) $this->input->post('supplier_name');
+    $vendor_code = (string) $this->input->post('vendor_code');
     $company_name = (string) $this->input->post('company_name');
     $supplier_contact = (string) $this->input->post('supplier_contact');
     $supplier_email = (string) $this->input->post('supplier_email');
@@ -25,7 +25,7 @@ class Supplier_model extends CI_Model
     $supplier_province = (string) $this->input->post('supplier_province');
 
     $data = array(
-      'supplier_name' => $supplier_name,
+      'vendor_code' => $vendor_code,
       'company_name' => $company_name,
       'supplier_contact' => $supplier_contact,
       'supplier_email' => $supplier_email,
@@ -47,7 +47,7 @@ class Supplier_model extends CI_Model
   {
     $supplier_id = (int) $this->input->post('supplier_id');
 
-    $supplier_name = (string) $this->input->post('supplier_name');
+    $vendor_code = (string) $this->input->post('vendor_code');
     $company_name = (string) $this->input->post('company_name');
     $supplier_contact = (string) $this->input->post('supplier_contact');
     $supplier_email = (string) $this->input->post('supplier_email');
@@ -57,7 +57,7 @@ class Supplier_model extends CI_Model
     $supplier_province = (string) $this->input->post('supplier_province');
 
     $data = array(
-      'supplier_name' => $supplier_name,
+      'vendor_code' => $vendor_code,
       'company_name' => $company_name,
       'supplier_contact' => $supplier_contact,
       'supplier_email' => $supplier_email,

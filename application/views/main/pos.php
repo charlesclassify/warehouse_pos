@@ -128,16 +128,6 @@
                                 </tr>
                             </thead>
                             <tbody id="product-list-body" class="text-center">
-                                <?php foreach ($result as $product) { ?>
-                                    <tr class="product-row" data-product-name="<?php echo $product->product_name; ?>" data-product-code="<?php echo $product->product_code; ?>" data-product-price="<?php echo $product->product_price; ?>" data-product-code="<?php echo $product->product_code; ?>" data-product-barcode="<?php echo $product->product_barcode; ?>">
-                                        <td><?php echo $product->product_code; ?></td>
-                                        <td><?php echo $product->product_name; ?></td>
-                                        <td><?php echo $product->product_uom; ?></td>
-                                        <td>₱<?php echo $product->product_price; ?></td>
-                                        <td><?php echo $product->product_quantity; ?></td>
-                                        <td><button class="btn btn-success add-to-cart">Add to Cart</button></td>
-                                    </tr>
-                                <?php } ?>
                             </tbody>
                         </table>
                         <!-- Pagination -->
@@ -198,53 +188,75 @@
     <!-- Add this script at the end of your page, after including jQuery -->
     <script>
         $(document).ready(function() {
+            // Function to escape HTML entities to prevent issues with quotes in product names
+            function escapeHtml(text) {
+                var map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+            }
+
             // Variables for pagination
             var currentPage = 1;
             var productsPerPage = 10;
-            var totalProducts = <?php echo count($result); ?>;
-            var totalPages = Math.ceil(totalProducts / productsPerPage);
-            var productsData = <?php echo json_encode($result); ?>;
+            var totalPages = 1;
 
-            // Function to display products for the current page
-            function displayProducts() {
-                var startIndex = (currentPage - 1) * productsPerPage;
-                var endIndex = startIndex + productsPerPage;
-                var filteredProducts = productsData;
+            // Function to load products via AJAX
+            function loadProducts() {
+                var searchTerm = $('#product-search').val().trim();
+                
+                $.ajax({
+                    url: '<?php echo site_url('main/get_pos_products_ajax'); ?>',
+                    type: 'POST',
+                    data: {
+                        page: currentPage,
+                        limit: productsPerPage,
+                        search: searchTerm
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            totalPages = response.totalPages;
+                            displayProducts(response.products);
+                            updatePagination();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading products:', error);
+                    }
+                });
+            }
 
-                // Filter products based on search term (product name or product code)
-                var searchTerm = $('#product-search').val().toLowerCase().trim();
-                if (searchTerm !== '') {
-                    filteredProducts = productsData.filter(function(product) {
-                        return product.product_name.toLowerCase().includes(searchTerm) || product.product_code.toLowerCase().includes(searchTerm) || product.product_barcode.toLowerCase().includes(searchTerm);
-                    });
-                }
-
-                // Slice the filtered products based on pagination
-                var productsToDisplay = filteredProducts.slice(startIndex, endIndex);
-
+            // Function to display products
+            function displayProducts(products) {
                 $('#product-list-body').empty();
-                productsToDisplay.forEach(function(product) {
-                    var productRow = '<tr class="product-row" data-product-name="' + product.product_name + '" data-product-price="' + product.product_price + '" data-product-code="' + product.product_code + '" data-product-barcode="' + product.product_barcode + '">';
+                
+                products.forEach(function(product) {
+                    var productRow = '<tr class="product-row" data-product-name="' + escapeHtml(product.product_name) + '" data-product-price="' + product.product_price + '" data-product-code="' + product.product_code + '" data-product-barcode="' + product.product_barcode + '" data-product-uom="' + product.product_uom + '" data-product-quantity="' + product.product_quantity + '">';
                     productRow += '<td>' + product.product_code + '</td>';
                     productRow += '<td style="font-size: 12px; font-weight: bold">' + product.product_name + '</td>';
                     productRow += '<td>' + product.product_uom + '</td>';
-                    productRow += '<td>' + '₱' + product.product_price + '</td>';
+                    productRow += '<td>₱' + product.product_price + '</td>';
                     productRow += '<td>' + product.product_quantity + '</td>';
                     productRow += '<td><button class="btn btn-success add-to-cart">Add to Cart</button></td>';
                     productRow += '</tr>';
                     $('#product-list-body').append(productRow);
                 });
-
-                // Update pagination
-                updatePagination();
             }
 
-            // Function to update pagination
             // Function to update pagination
             function updatePagination() {
                 $('#pagination').empty();
 
-                var maxPagesToShow = 10; // Maximum number of pages to display at once
+                if (totalPages <= 1) {
+                    return;
+                }
+
+                var maxPagesToShow = 10;
                 var startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
                 var endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
@@ -253,56 +265,51 @@
                     var pageLink = '<li class="' + liClass + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
                     $('#pagination').append(pageLink);
                 }
-
             }
 
             // Pagination click event
             $('#pagination').on('click', '.page-link', function(event) {
                 event.preventDefault();
                 currentPage = parseInt($(this).data('page'));
-                displayProducts();
+                loadProducts();
             });
 
-            // Initial display of products and pagination
-            displayProducts();
-
-            // Pagination click event
-            $('#pagination').on('click', '.page-link', function(event) {
-                event.preventDefault();
-                currentPage = parseInt($(this).text());
-                displayProducts();
-            });
+            // Initial load of products
+            loadProducts();
 
             // Search button click event
             $('#search-button').on('click', function() {
-                currentPage = 1; // Reset to the first page when searching
-                displayProducts();
+                currentPage = 1;
+                loadProducts();
             });
 
-            // Search input keyup event for live search
+            // Search input event for live search
             $('#product-search').on('input', function() {
-                currentPage = 1; // Reset to the first page when searching
-                displayProducts();
+                currentPage = 1;
+                loadProducts();
             });
 
             // Add to Cart button click event remains unchanged
             $('#product-table').on('click', '.add-to-cart', function() {
                 var productName = $(this).closest('.product-row').data('product-name');
                 var productPrice = parseFloat($(this).closest('.product-row').data('product-price'));
+                var productCode = $(this).closest('.product-row').data('product-code');
+                var productUoM = $(this).closest('.product-row').data('product-uom');
+                var productQuantity = parseFloat($(this).closest('.product-row').data('product-quantity'));
 
                 // Check if the product is already in the cart
-                if (isProductInCart(productName)) {
+                if (isProductInCart(productCode)) {
                     toastr.error('This product is already in the cart.');
                     return; // Exit the function to prevent adding duplicates
                 }
 
                 // Create a new cart item element with quantity input
-                var cartItem = $('<tr data-product-name="' + productName + '" data-product-price="' + productPrice.toFixed(2) + '"></tr>');
-                cartItem.append('<td>' + productName + '</td>');
-                cartItem.append('<td><input class="form-control form-control-sm product-quantity" type="number" value="1" min="0"></td>');
+                var cartItem = $('<tr data-product-name="' + escapeHtml(productName) + '" data-product-price="' + productPrice.toFixed(2) + '" data-product-code="' + productCode + '" data-product-uom="' + productUoM + '"></tr>');
+                cartItem.append('<td>' + productCode + ' - ' + productName + '</td>'); //Added productCode so that the user can identify which item in the cart
+                cartItem.append('<td><input class="form-control form-control-sm product-quantity" type="number" value="1" step="0.01" min="0" max="' + productQuantity + '"></td>');
                 cartItem.append('<td>₱' + productPrice.toFixed(2) + '</td>');
                 cartItem.append('<td class="product-total">' + productPrice.toFixed(2) + '</td>');
-                cartItem.append('<td><button class="btn btn-danger delete-item">Delete</button></td>');
+                cartItem.append('<td><button class="btn btn-danger delete-item"><i class="fas fa-trash"></i></button></td>');
 
                 // Append the cart item to the cart table
                 $('#table_field tbody').append(cartItem);
@@ -322,6 +329,8 @@
                 $('#table_field tbody').find('tr').each(function() {
                     var item = {
                         productName: $(this).data('product-name'),
+                        productCode: $(this).data('product-code'),
+                        productUoM: $(this).data('product-uom'), // Adding product_uom
                         productPrice: parseFloat($(this).data('product-price')),
                         quantity: parseFloat($(this).find('.product-quantity').val())
                     };
@@ -398,11 +407,11 @@
             }
 
             // Function to check if a product is already in the cart
-            function isProductInCart(productName) {
+            function isProductInCart(productCode) {
                 var inCart = false;
                 $('#table_field tbody').find('tr').each(function() {
-                    var cartProductName = $(this).data('product-name');
-                    if (cartProductName === productName) {
+                    var cartProductCode = $(this).data('product-code');
+                    if (cartProductCode === productCode) {
                         inCart = true;
                         return false; // Exit the loop early since we found a match
                     }

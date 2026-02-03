@@ -169,14 +169,18 @@
         <div class="items">
             <table>
                 <thead>
+                    <th>SAP CODE</th>
                     <th>ITEM NAME</th>
+                    <th>UOM</th>
                     <th>QTY</th>
                     <th>&nbsp&nbspPRICE</th>
                 </thead>
                 <tbody id="itemTableBody">
                     <?php foreach ($view as $row) { ?>
                         <tr>
+                            <td><?= $row->product_code; ?></td>
                             <td><?= $row->product_name; ?></td>
+                            <td><?= $row->product_uom; ?></td>
                             <td>x<?= $row->quantity; ?></td>
                             <td>₱<?= $row->product_price; ?></td>
                         </tr>
@@ -193,6 +197,10 @@
     <div class="customer_cont">
         <span>Customer:</span>
         <span id="customer"><?= $code->customer_name ?></span>
+    </div>
+    <div class="customer_cont">
+        <span>Remarks:</span>
+        <span id="remarks"><?= $code->remarks ?></span>
     </div>
     <h3>Reference No.: <?= $code->reference_no ?> | Date: <?= $code->date_created ?></h3>
 </div>

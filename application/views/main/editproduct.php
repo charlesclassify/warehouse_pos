@@ -57,14 +57,14 @@
 
 					<div class="form-group col-md-3 d-inline-block">
 						<label class="bold-label">Brand</label>
-						<input type="text" placeholder="Enter Brand" name="product_brand" value="<?= set_value('product_brand', $product->product_brand); ?>" class="form-control" required>
+						<input type="text" placeholder="Enter Brand" name="product_brand" value="<?= set_value('product_brand', $product->product_brand); ?>" class="form-control" >
 						<?= form_error('product_brand'); ?>
 					</div>
 
 
 					<div class="form-group col-md-3 d-inline-block">
 						<label class="bold-label">Product Category</label>
-						<select class="form-control " data-live-search="true" data-style="btn-sm btn-outline-secondary" name="product_category" required>
+						<select class="form-control " data-live-search="true" data-style="btn-sm btn-outline-secondary" name="product_category" >
 							<option selected hidden value="<?= $product->product_category ?>"><?= $product->product_category ?></option>
 
 							<option value=" Maintenance, Repairs, Operations">Maintenance, Repairs, Operations</option>
@@ -82,7 +82,7 @@
 					<div class="form-group col-md-3 d-inline-block">
 						<label class="bold-label">Unit of Measure</label>
 
-						<select class="form-control form-control" name="product_uom" id="uom" title="Please enter unit" required>
+						<select class="form-control form-control" name="product_uom" id="uom" title="Please enter unit" >
 							<option value="<?= set_value('product_uom', $product->product_uom); ?>" selected hidden><?= set_value('product_uom', $product->product_uom); ?></option>
 							<?php foreach ($unit as $pro) { ?>
 								<option value="<?= $pro->unit ?>"><?= $pro->unit ?></option>
@@ -92,13 +92,13 @@
 					</div>
 					<div class="form-group col-md-3 d-inline-block">
 						<label class="bold-label">Minimum Quantity</label>
-						<input type="number" placeholder="Enter Quantity" min="0" name="product_minimum_quantity" value="<?= set_value('product_minimum_quantity', $product->product_minimum_quantity); ?>" class="form-control" id="product_minimum_quantity" required>
+						<input type="number" placeholder="Enter Quantity" min="0" name="product_minimum_quantity" value="<?= set_value('product_minimum_quantity', $product->product_minimum_quantity); ?>" class="form-control" id="product_minimum_quantity" >
 						<?= form_error('product_minimum_quantity'); ?>
 					</div>
 
 					<div class="form-group col-md-3 d-inline-block">
 						<label class="bold-label">Price</label>
-						<input type="number" placeholder="Enter Price" min="0" step="0.01" name="product_price" value="<?= set_value('product_price', $product->product_price); ?>" class="form-control" id="product_price" required>
+						<input type="number" placeholder="Enter Price" min="0" step="0.01" name="product_price" value="<?= set_value('product_price', $product->product_price); ?>" class="form-control" id="product_price" >
 						<?= form_error('product_price'); ?>
 					</div>
 

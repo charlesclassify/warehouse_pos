@@ -169,7 +169,9 @@
         <div class="items">
             <table>
                 <thead>
+                    <th>SAP CODE</th>
                     <th>ITEM NAME</th>
+                    <th>UOM</th>
                     <th>QTY</th>
                     <th>&nbsp&nbspPRICE</th>
                 </thead>
@@ -186,8 +188,15 @@
         <span>Customer:</span>
         <span id="customer"></span>
     </div>
+    <div class="customer_cont">
+        <span>Remarks:</span>
+        <span id="remarks"></span>
+    </div>
 
-    <h3>Reference No.: <span id="referenceNo"></span> | Date: <?php echo date('m/d/y'); ?></h3>
+    <h3>
+        Reference No.: <span id="referenceNo"></span> <br>
+        Date: <?php echo date('Y-m-d H:i:s'); ?>
+    </h3>
 
 </div>
 
@@ -204,7 +213,9 @@
 
         products.forEach(function(product) {
             var row = document.createElement('tr');
-            row.innerHTML = '<td>' + product.productName + '</td>' +
+            row.innerHTML = '<td>' + product.productCode + '</td>' +
+                '<td>' + product.productName + '</td>' +
+                '<td>' + product.productUoM + '</td>' +
                 '<td>' + 'x' + product.quantity + '</td>' +
                 '<td>' + '₱' + product.productPrice.toFixed(2) + '</td>';
             itemTableBody.appendChild(row);
@@ -221,12 +232,15 @@
         var paymentData = JSON.parse(storedPaymentData);
 
         // Retrieve and display reference number
-        var storedReferenceNo = localStorage.getItem('referenceNo');
+        var storedReferenceNo = localStorage.getItem('ref_no');
         document.getElementById('referenceNo').textContent = storedReferenceNo;
 
         // Retrieve and display customer name
         var customerName = localStorage.getItem('customerName');
         document.getElementById('customer').textContent = customerName;
+
+        var remarks = localStorage.getItem('remarks');
+        document.getElementById('remarks').textContent = remarks;
 
         // Handle printing
         var printButton = document.getElementById('printButton');

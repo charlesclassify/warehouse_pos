@@ -35,55 +35,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($sa as $sales) { ?>
-                        <tr>
-                            <td><?= $sales->reference_no ?></td>
-                            <td><?= $sales->date_created ?></td>
-                            <td><?= ucfirst($sales->customer_name) ?></td>
-                            <td>₱<?= $sales->total_cost ?></td>
-                            <td>
-                                <a href="<?php echo site_url('main/print_sales_report/' . $sales->sales_no_id); ?>" style="color: darkcyan; padding-left:6px;"><i class="fas fa-print"></i></a>
-                            </td>
-                        </tr>
-                    <?php } ?>
                 </tbody>
             </table>
         </div>
 
         <!-- Receiving Report -->
-        <div class="tab-pane fade active" id="module2" role="tabpanel" aria-labelledby="module2-tab">
+        <div class="tab-pane fade" id="module2" role="tabpanel" aria-labelledby="module2-tab">
             <table class="table" id="user-datatables-module2">
                 <thead>
                     <tr>
                         <th>Receiving No</th>
-                        <th>Product Code</th>
-                        <th>Product Name</th>
-                        <th>Inbound Quantity</th>
+                        <th>Supplier</th>
+                        <th>Comments</th>
                         <th>Date</th>
                         <th>Incharge</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($receiving as $r) { ?>
-                        <tr>
-                            <td><?= $r->receiving_no ?></td>
-                            <td><?= $r->product_code ?></td>
-                            <td><?= $r->product_name ?></td>
-                            <td><?= $r->inbound_quantity ?></td>
-                            <td><?= $r->date ?></td>
-                            <td><?= $r->username ?></td>
-                            <td>
-                                <a href="<?php echo site_url('main/inbound_receipt/' . $r->receiving_no); ?>" style="color: darkcyan; padding-left:6px;"><i class="fas fa-print"></i></a>
-                            </td>
-                        </tr>
-                    <?php } ?>
                 </tbody>
             </table>
         </div>
 
         <!-- Inventory Adjustment Report -->
-        <div class="tab-pane fade active" id="module3" role="tabpanel" aria-labelledby="module3-tab">
+        <div class="tab-pane fade" id="module3" role="tabpanel" aria-labelledby="module3-tab">
 
             <table class="table" id="user-datatables-module3">
 
@@ -98,44 +73,85 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($ia as $inv) { ?>
-                        <tr>
-                            <td><?= $inv->inventory_adjustment_id ?></td>
-                            <td><?= $inv->product_name ?></td>
-                            <td><?= $inv->old_quantity ?></td>
-                            <td><?= $inv->new_quantity ?></td>
-                            <td><?= $inv->date_adjusted ?></td>
-                            <td><?= $inv->reason ?></td>
-                        </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
-        </div>
-        <div class="tab-pane fade active" id="module3">
-            <table class="table" id="user-datatables-module1">
-                <thead>
-                    <tr>
-                        <th>Reference No.</th>
-                        <th>Date Created</th>
-                        <th>Customer</th>
-                        <th>Total Cost</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($sa as $sales) { ?>
-                        <tr>
-                            <td><?= $sales->reference_no ?></td>
-                            <td><?= $sales->date_created ?></td>
-                            <td><?= ucfirst($sales->customer_name) ?></td>
-                            <td>₱<?= $sales->total_cost ?></td>
-                            <td>
-                                <a href="<?php echo site_url('main/print_sales_report/' . $sales->sales_no_id); ?>" style="color: darkcyan; padding-left:6px;"><i class="fas fa-print"></i></a>
-                            </td>
-                        </tr>
-                    <?php } ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<script>
+$(document).ready(function () {
+
+    function initDataTable(tableId, ajaxUrl, columns, orderColumn) {
+        if ($.fn.DataTable.isDataTable('#' + tableId)) {
+            return;
+        }
+
+        $('#' + tableId).DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: ajaxUrl,
+                type: "POST"
+            },
+            columns: columns,
+            order: orderColumn,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]]
+        });
+    }
+
+    // Initialize active tab immediately
+    initDataTable(
+        'user-datatables-module1',
+        '<?= site_url('main/get_sales_report_ajax'); ?>',
+        [
+            { data: 0 },
+            { data: 1 },
+            { data: 2 },
+            { data: 3 },
+            { data: 4, orderable: false }
+        ],
+        [[1, 'desc']]
+    );
+
+    // Initialize on tab show
+    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+        const target = $(e.target).attr("href");
+
+        if (target === '#module2') {
+            initDataTable(
+                'user-datatables-module2',
+                '<?= site_url('main/get_receiving_report_ajax'); ?>',
+                [
+                    { data: 0 },
+                    { data: 1 },
+                    { data: 2 },
+                    { data: 3 },
+                    { data: 4 },
+                    { data: 5, orderable: false }
+                ],
+                [[3, 'desc']]
+            );
+        }
+
+        if (target === '#module3') {
+            initDataTable(
+                'user-datatables-module3',
+                '<?= site_url('main/get_inventory_report_ajax'); ?>',
+                [
+                    { data: 0 },
+                    { data: 1 },
+                    { data: 2 },
+                    { data: 3 },
+                    { data: 4 },
+                    { data: 5 }
+                ],
+                [[0, 'desc']]
+            );
+        }
+    });
+
+});
+
+</script>
